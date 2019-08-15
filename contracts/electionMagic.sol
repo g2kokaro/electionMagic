@@ -1,6 +1,8 @@
 pragma solidity ^0.5.0;
 
 contract electionMagic {
+    enum States { SETUP, IN_PROGRESS, COMPLETE }
+
     struct Candidate {
         string name;
         uint voteCount;
@@ -8,23 +10,45 @@ contract electionMagic {
 
     mapping(address => bool) public voters;
     mapping(uint => Candidate) public candidates;
-    uint public candidatesCount;
+    uint public candidateCount;
+    States currentState;
+    address administrator;
 
     event votedEvent (uint indexed _candidateId);
 
     constructor () public {
-        addCandidate("Donald Trump");
-        addCandidate("Vladimir Putin");
+        currentState = States.SETUP;
+        administrator = msg.sender;
     }
 
-    function addCandidate (string memory _name) private {
-        candidatesCount++;
-        candidates[candidatesCount] = Candidate(_name, 0);
+    modifier onlySetup() {
+        require (currentState == States.SETUP, "This action can only be completed during election setup.");
+        _;
     }
 
-    function vote (uint _candidateId) public {
+    modifier onlyInProgress() {
+        require (currentState == States.IN_PROGRESS, "This action can only be completed while the election is in progress.");
+        _;
+    }
+
+    modifier onlyAdministrator() {
+        require (msg.sender == administrator, "Only the administrator can perform this action.");
+        _;
+    }
+
+    function addCandidate (string calldata _name) external onlySetup onlyAdministrator {
+        candidateCount++;
+        candidates[candidateCount] = Candidate(_name, 0);
+    }
+
+    function finishSetup () public onlySetup onlyAdministrator {
+        require(candidateCount >= 2, "Election must have at least two candidates.");
+        currentState = States.IN_PROGRESS;
+    }
+
+    function vote (uint _candidateId) public onlyInProgress {
         require(!voters[msg.sender], "You can only vote once.");
-        require(_candidateId > 0 && _candidateId <= candidatesCount, "Invalid candidate.");
+        require(_candidateId > 0 && _candidateId <= candidateCount, "Invalid candidate.");
 
         voters[msg.sender] = true;
         candidates[_candidateId].voteCount++;
