@@ -1,5 +1,5 @@
-var Election = artifacts.require("./Election.sol");
+var electionMagic = artifacts.require("./electionMagic.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(Election);
+  deployer.deploy(electionMagic);
 };
