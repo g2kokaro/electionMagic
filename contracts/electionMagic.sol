@@ -8,10 +8,10 @@ contract electionMagic {
         uint voteCount;
     }
 
-    mapping(address => bool) public voters;
+    mapping(address => uint8) public voters; // 1 means eligible to vote, 2 means already voted
     mapping(uint => Candidate) public candidates;
     uint public candidateCount;
-    States currentState;
+    States public currentState;
     address administrator;
 
     event votedEvent (uint indexed _candidateId);
@@ -22,17 +22,17 @@ contract electionMagic {
     }
 
     modifier onlySetup() {
-        require (currentState == States.SETUP, "This action can only be completed during election setup.");
+        require (currentState == States.SETUP, "This action can only be completed during election setup");
         _;
     }
 
     modifier onlyInProgress() {
-        require (currentState == States.IN_PROGRESS, "This action can only be completed while the election is in progress.");
+        require (currentState == States.IN_PROGRESS, "This action can only be completed while the election is in progress");
         _;
     }
 
     modifier onlyAdministrator() {
-        require (msg.sender == administrator, "Only the administrator can perform this action.");
+        require (msg.sender == administrator, "Only the administrator can perform this action");
         _;
     }
 
@@ -41,16 +41,20 @@ contract electionMagic {
         candidates[candidateCount] = Candidate(_name, 0);
     }
 
+    function addVoter (address _newVoter) external onlySetup onlyAdministrator {
+        voters[_newVoter] = 1;
+    }
+
     function finishSetup () public onlySetup onlyAdministrator {
-        require(candidateCount >= 2, "Election must have at least two candidates.");
+        require(candidateCount >= 2, "Election must have at least two candidates");
         currentState = States.IN_PROGRESS;
     }
 
     function vote (uint _candidateId) public onlyInProgress {
-        require(!voters[msg.sender], "You can only vote once.");
-        require(_candidateId > 0 && _candidateId <= candidateCount, "Invalid candidate.");
+        require(voters[msg.sender] == 1, "You are not eligible to vote");
+        require(_candidateId > 0 && _candidateId <= candidateCount, "Invalid candidate");
 
-        voters[msg.sender] = true;
+        voters[msg.sender] = 2;
         candidates[_candidateId].voteCount++;
 
         emit votedEvent(_candidateId);
