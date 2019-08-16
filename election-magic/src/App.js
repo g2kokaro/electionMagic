@@ -11,6 +11,7 @@ class App extends Component {
     this.cF.initialize()
     console.log(await this.cF.getNumberOfCandidates())
     console.log(await this.cF.getCandidate(1))
+    console.log(await this.cF.getAllCandidates())
   }
   render() {
     return (
