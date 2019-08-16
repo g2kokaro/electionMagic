@@ -1,35 +1,49 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import contractFunctions from './contractFunctions/contractFunctions'
-import './App.css';
-
-
+import Table from 'react-bootstrap/Table'
 
 class App extends Component {
-  async componentDidMount(){
-    this.cF = new contractFunctions()
+  async componentDidMount() {
+    this.cF = new contractFunctions(this.store)
     this.cF.initialize()
-    console.log(await this.cF.getNumberOfCandidates())
-    console.log(await this.cF.getCandidate(1))
-    console.log(await this.cF.getAllCandidates())
+    let candidates = await this.cF.getAllCandidates()
+
+    this.setState((state, props) => {
+      return { candidates: candidates }
+    })
   }
+
   render() {
+    let candidateRows = null
+    if (this.state != null) {
+      candidateRows = this.state.candidates.map(function (candidate) {
+        return (
+          <tr key={candidate.id}>
+            <td>{candidate.id}</td>
+            <td>{candidate.name}</td>
+            <td>{candidate.voteCount}</td>
+          </tr>
+        )
+      })
+    }
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-        </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+      <div>
+        <h1>Election Magic</h1>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Vote Count</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              candidateRows
+            }
+          </tbody>
+        </Table>
       </div>
     )
   }

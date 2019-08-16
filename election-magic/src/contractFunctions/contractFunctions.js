@@ -12,7 +12,7 @@ class contractFunctions {
     this.contract = ""
   }
 
-  valueToNumber(v){
+  valueToNumber(v) {
     let bigNum = new utils.BigNumber(v._hex)
     return bigNum.toNumber();
   }
@@ -30,24 +30,24 @@ class contractFunctions {
   }
 
   async getNumberOfCandidates() {
-    let v =  await this.contract.candidateCount()
+    let v = await this.contract.candidateCount()
     return this.valueToNumber(v)
   }
 
   async getCandidate(candidateId) {
-    return this.contract.candidates(candidateId);
+    let obj = await this.contract.candidates(candidateId);
+    return {
+      id: candidateId,
+      name: obj.name,
+      voteCount: this.valueToNumber(obj.voteCount)
+    }
   }
 
   async getAllCandidates() {
     let candidateCount = await this.getNumberOfCandidates();
     let candidates = []
-    for (let i = 1; i <= candidateCount; i++){
-      let obj = await this.getCandidate(i)
-      candidates.push({
-        id: i,
-        name: obj.name,
-        voteCount: this.valueToNumber(obj.voteCount)
-      })
+    for (let i = 1; i <= candidateCount; i++) {
+      candidates.push(await this.getCandidate(i))
     }
     return candidates
   }
