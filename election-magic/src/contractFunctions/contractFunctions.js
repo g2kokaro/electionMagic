@@ -25,8 +25,13 @@ class contractFunctions {
     }
     this.provider = new ethers.providers.Web3Provider(window.web3.currentProvider);
     this.contract = new ethers.Contract(this.contractAddress, ABI, this.provider.getSigner())
-    this.adminAddress = await this.contract.administrator()
     this.electionState = await this.contract.currentState()
+  }
+
+  async isUserAdmin() {
+    this.adminAddress = await this.contract.administrator()
+    this.adminAddress = this.adminAddress.toLowerCase()
+    return window.web3.eth.accounts[0] === this.adminAddress
   }
 
   async getNumberOfCandidates() {
@@ -64,6 +69,15 @@ class contractFunctions {
       candidates.push(await this.getCandidate(i))
     }
     return candidates
+  }
+
+  async addCandidate(name){
+    console.log(name)
+    await (this.contract.addCandidate(name))
+  }
+
+  async addVoter(address){
+    await (this.contract.addVoter(address))
   }
 }
 

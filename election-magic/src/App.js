@@ -4,6 +4,7 @@ import Table from 'react-bootstrap/Table'
 import Spinner from 'react-bootstrap/Spinner'
 import Button from 'react-bootstrap/Button'
 import Alert from 'react-bootstrap/Alert'
+import Form from 'react-bootstrap/Form'
 
 class App extends Component {
   constructor() {
@@ -11,7 +12,10 @@ class App extends Component {
     this.state = {
       candidates: [],
       alertType: "",
-      message: ""
+      message: "",
+      userIsAdmin: false,
+      newCandidate: "",
+      newVoter: ""
     }
     this.cF = new contractFunctions()
     this.cF.initialize()
@@ -19,9 +23,12 @@ class App extends Component {
 
   async componentDidMount() {
     this.loadCandidates()
-
+    let userIsAdmin = await this.cF.isUserAdmin()
+    this.setState(() => {
+      return { userIsAdmin: userIsAdmin }
+    })
   }
-  
+
   async loadCandidates() {
     let candidates = await this.cF.getAllCandidates()
     this.setState((state, props) => {
@@ -40,6 +47,14 @@ class App extends Component {
     if (result.alertType === "success") {
       this.loadCandidates()
     }
+  }
+
+  updateNewCandidate = (e) => {
+    this.setState({ newCandidate: e.target.value })
+  }
+
+  updateNewVoter = (e) => {
+    this.setState({ newVoter: e.target.value })
   }
 
   render() {
@@ -84,9 +99,29 @@ class App extends Component {
       )
     }
 
+    let adminPanel
+    if (this.state.userIsAdmin) {
+      adminPanel = (
+        <Form>
+          <Form.Group>
+            <Form.Control type="text" value={this.state.newCandidate} onChange={this.updateNewCandidate} placeholder="Enter the new candidate's name" />
+            <Button variant="primary" onClick={() => this.cF.addCandidate(this.state.newCandidate)}>
+              Add Candidate
+            </Button>
+          </Form.Group>
+          <Form.Group>
+            <Form.Control type="text" value={this.state.newVoter} onChange={this.updateNewVoter} placeholder="Enter the new voter's address" />
+            <Button variant="primary" onClick={() => this.cF.addVoter(this.state.newVoter)}>
+              Add Voter
+            </Button>
+          </Form.Group>
+        </Form>
+      )
+    }
     return (
       <div>
         <h1>Election Magic</h1>
+        {adminPanel}
         {candidateTable}
         {alertBox}
       </div>
