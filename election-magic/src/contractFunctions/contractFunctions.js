@@ -19,7 +19,7 @@ class contractFunctions {
 
   async initialize() {
     if (process.env.NODE_ENV === "development") {
-      this.contractAddress = CONTRACT_ADDRESS_KOVAN
+      this.contractAddress = CONTRACT_ADDRESS_DEV
     } else {
       this.contractAddress = CONTRACT_ADDRESS_KOVAN
     }
