@@ -13,29 +13,33 @@ class App extends Component {
       alertType: "",
       message: ""
     }
+    this.cF = new contractFunctions()
+    this.cF.initialize()
   }
 
   async componentDidMount() {
-    this.cF = new contractFunctions(this.store)
-    this.cF.initialize()
-    let candidates = await this.cF.getAllCandidates()
+    this.loadCandidates()
 
+  }
+  
+  async loadCandidates() {
+    let candidates = await this.cF.getAllCandidates()
     this.setState((state, props) => {
       return { candidates: candidates }
     })
-    this.vote = this.vote.bind(this);
   }
 
   async vote(id) {
     let result = await this.cF.vote(id)
-
     this.setState((state, props) => {
       return {
         alertType: result.alertType,
         message: result.message
       }
     })
-
+    if (result.alertType === "success") {
+      this.loadCandidates()
+    }
   }
 
   render() {

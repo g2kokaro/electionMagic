@@ -2,7 +2,8 @@ let ethers = require('ethers')
 let utils = ethers.utils
 let ABI = require('./electionMagic.json').abi
 
-let CONTRACT_ADDRESS_DEV = '0xEaDf5fC997a9aefCfDe79A18dF51215c77C00740'
+const CONTRACT_ADDRESS_DEV = '0x7ddA67ca96CbCceC5AA56B72F5Bc10A8490EdF02'
+const CONTRACT_ADDRESS_KOVAN = '0xcb79866ab49160c9fcfbdc311e687de4e53a2806'
 
 class contractFunctions {
   constructor() {
@@ -18,13 +19,14 @@ class contractFunctions {
 
   async initialize() {
     if (process.env.NODE_ENV === "development") {
-      this.contractAddress = CONTRACT_ADDRESS_DEV
+      this.contractAddress = CONTRACT_ADDRESS_KOVAN
     } else {
-      // TODO add contract address and web3 provider once contract is deployed
-      // this.contractAddress = ""
+      this.contractAddress = CONTRACT_ADDRESS_KOVAN
     }
     this.provider = new ethers.providers.Web3Provider(window.web3.currentProvider);
     this.contract = new ethers.Contract(this.contractAddress, ABI, this.provider.getSigner())
+    this.adminAddress = await this.contract.administrator()
+    this.electionState = await this.contract.currentState()
   }
 
   async getNumberOfCandidates() {
@@ -41,15 +43,18 @@ class contractFunctions {
     }
   }
 
-  async vote(candidateId){
-    let voterState = await this.contract.voters(window.web3.eth.accounts[0])
-    if (voterState === 0){
-      return {alertType:"warning", message:"You are not eligible to vote."}
-    } else if (voterState === 2){
-      return {alertType:"warning", message:"You have already voted."}
+  async vote(candidateId) {
+    if (this.electionState === 0) {
+      return { alertType: "warning", message: "The election has not started yet." }
     }
-    let tx = await this.contract.vote(candidateId)
-    return {alertType:"success", message:"Vote cast successfully."} 
+    let voterState = await this.contract.voters(window.web3.eth.accounts[0])
+    if (voterState === 0) {
+      return { alertType: "warning", message: "You are not eligible to vote." }
+    } else if (voterState === 2) {
+      return { alertType: "warning", message: "You have already voted." }
+    }
+    await this.contract.vote(candidateId)
+    return { alertType: "success", message: "Vote cast successfully." }
   }
 
   async getAllCandidates() {

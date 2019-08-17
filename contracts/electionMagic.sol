@@ -12,7 +12,7 @@ contract electionMagic {
     mapping(uint => Candidate) public candidates;
     uint public candidateCount;
     States public currentState;
-    address administrator;
+    address public administrator;
 
     event votedEvent (uint indexed _candidateId);
 
