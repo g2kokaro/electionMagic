@@ -2,7 +2,6 @@ let ethers = require('ethers')
 let utils = ethers.utils
 let ABI = require('./electionMagic.json').abi
 
-let RPC_SERVER_DEV = 'http://127.0.0.1:8545'
 let CONTRACT_ADDRESS_DEV = '0xEaDf5fC997a9aefCfDe79A18dF51215c77C00740'
 
 class contractFunctions {
@@ -20,12 +19,11 @@ class contractFunctions {
   async initialize() {
     if (process.env.NODE_ENV === "development") {
       this.contractAddress = CONTRACT_ADDRESS_DEV
-      this.provider = new ethers.providers.JsonRpcProvider(RPC_SERVER_DEV);
     } else {
       // TODO add contract address and web3 provider once contract is deployed
       // this.contractAddress = ""
-      this.provider = new ethers.providers.Web3Provider(window.web3.currentProvider);
     }
+    this.provider = new ethers.providers.Web3Provider(window.web3.currentProvider);
     this.contract = new ethers.Contract(this.contractAddress, ABI, this.provider.getSigner())
   }
 
@@ -41,6 +39,17 @@ class contractFunctions {
       name: obj.name,
       voteCount: this.valueToNumber(obj.voteCount)
     }
+  }
+
+  async vote(candidateId){
+    let voterState = await this.contract.voters(window.web3.eth.accounts[0])
+    if (voterState === 0){
+      return {alertType:"warning", message:"You are not eligible to vote."}
+    } else if (voterState === 2){
+      return {alertType:"warning", message:"You have already voted."}
+    }
+    let tx = await this.contract.vote(candidateId)
+    return {alertType:"success", message:"Vote cast successfully."} 
   }
 
   async getAllCandidates() {
